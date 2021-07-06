@@ -1,0 +1,6 @@
+{
+  "disableScroll": true,
+  "usingComponents": {
+    "refreshable-view": "../../components/index"
+  }
+}

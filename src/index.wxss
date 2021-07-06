@@ -1,0 +1,36 @@
+/* refreshable-view/refreshable-view.wxss */
+
+:host {
+  display: flex;
+  flex-direction: column;
+}
+
+.container {
+  height: 100%;
+}
+
+.leading-refresher-container {
+  display: flex;
+  flex-direction: column-reverse;
+  overflow: hidden;
+  width: 100%;
+}
+
+.leading-refresher {
+  display: flex;
+  min-height: 50px;
+  opacity: 1;
+}
+
+.trailing-refresher-container {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  width: 100%;
+}
+
+.trailing-refresher {
+  display: flex;
+  min-height: 50px;
+  opacity: 1;
+}
