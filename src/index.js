@@ -77,10 +77,8 @@ Component({
 
   lifetimes: {
     attached() {
-
       this.leadingRefresherState = {value: 'idle'}
       this.trailingRefresherState = {value: 'idle'}
-
       this.setupAbortHandle()
       this.setupSentinelLoadingHandle()
       this.setupPullingHandle()
@@ -104,7 +102,7 @@ Component({
       this.refreshingHandle()
     },
     setupContainer() {
-      return new Promise( (resolve) => {
+      return new Promise((resolve) => {
         wx.createSelectorQuery().in(this).select('#container').boundingClientRect((res) => {
           resolve(res)
         })
@@ -212,18 +210,14 @@ Component({
           status: this.leadingRefresherState,
           lottieLoadingAnimation: this.lottieLeadingRefresher,
           pullingOffset: this.data.leadingPullingOffset,
-          action: (res) => {
-            return this.setData({leadingPullingOffset: res})
-          }
+          action: (res) => this.setData({leadingPullingOffset: res})
         })
 
         handleTrailingAbort({
           status: this.trailingRefresherState,
           lottieLoadingAnimation: this.lottieTrailingRefresher,
           pullingOffset: this.data.trailingPullingOffset,
-          action: (res) => {
-            return this.setData({trailingPullingOffset: res})
-          }
+          action: (res) => this.setData({trailingPullingOffset: res})
         })
       }
     },

@@ -17,24 +17,12 @@ Page({
     return rgb.join('') + 'ff'
   },
 
-  onReady() {
-    wx.request({
-      url: 'https://random-data-api.com/api/users/random_user?size=20',
-      success: result => {
-        console.log(result)
-        const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
-        this.setData({
-          arr
-        })
-      }
-    })
-  },
-
   onPulling(e) {
     console.log('onPulling:', e)
   },
 
   onRefresh(e) {
+    // e.detail.success()
     wx.request({
       url: 'https://random-data-api.com/api/users/random_user?size=20',
       success: result => {
