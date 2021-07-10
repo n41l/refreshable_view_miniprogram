@@ -23,13 +23,25 @@ Page({
 
   onRefresh(e) {
     // e.detail.success()
+    // 如果回调时间特别短会导致动画闪烁，我在考虑是否需要把基本时间判断加到内部
+    const start = Date.now()
+    console.log(start)
     wx.request({
       url: 'https://random-data-api.com/api/users/random_user?size=20',
       success: result => {
+        const duration = Date.now() - start
         const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
-        e.detail.success(this.setData({
-          arr
-        }))
+        if (duration > 500) {
+          e.detail.success(this.setData({
+            arr
+          }))
+        } else {
+          setTimeout(() => {
+            e.detail.success(this.setData({
+              arr
+            }))
+          }, 500 - duration)
+        }
       }
     })
   },
