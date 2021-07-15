@@ -340,8 +340,7 @@ Component({
           action: (offset, percentage) => {
             this.setData({
               leadingPullingOffset: offset,
-              leadingPullingPercentage: percentage,
-              scrollTop: this.leadingScrollViewOffset
+              leadingPullingPercentage: percentage
             })
           }
         })
@@ -358,8 +357,7 @@ Component({
           action: (offset, percentage) => {
             this.setData({
               trailingPullingOffset: offset,
-              trailingPullingPercentage: percentage,
-              scrollTop: this.leadingScrollViewOffset
+              trailingPullingPercentage: percentage
             })
           }
         })
