@@ -92,5 +92,5 @@ module.exports = {
     }
   },
 
-  copy: ['./assets', './utils.js'], // 将会复制到目标目录
+  copy: ['./utils.js'], // 将会复制到目标目录
 }

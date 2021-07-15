@@ -71,7 +71,8 @@ Component({
     trailingPullingOffset: 0,
 
     leadingPullingPercentage: 0,
-    trailingPullingPercentage: 0
+    trailingPullingPercentage: 0,
+    scrollTop: 0,
 
   },
 
@@ -79,14 +80,12 @@ Component({
     attached() {
       this.leadingRefresherState = {value: 'idle'}
       this.trailingRefresherState = {value: 'idle'}
+      this.setupLeadingRefresher()
       this.setupAbortHandle()
       this.setupSentinelLoadingHandle()
       this.setupPullingHandle()
       this.setupRefreshingHandle()
       this.setupScrollViewRectUpdatingHandle()
-      Promise.all(this.setupLeadingRefresher().concat([this.setupContainer()])).then(() => {
-        this.initialRefreshing()
-      }).catch()
     }
   },
 
@@ -94,6 +93,20 @@ Component({
    * 组件的方法列表
    */
   methods: {
+    updateScrollViewOffsets() {
+      this.updateBoundingRect()
+        .then(res => {
+          console.log(res)
+          if (this.leadingScrollViewOffset === undefined) {
+            this.leadingScrollViewOffset = 0
+          }
+          this.trailingScrollViewOffset = res.contentRect.height -
+            res.containerRect.height - this.leadingScrollViewOffset
+          console.log(this.leadingScrollViewOffset)
+          console.log(this.trailingScrollViewOffset)
+        })
+        .catch()
+    },
     initialRefreshing() {
       this.leadingRefresherState.value = 'pulling'
       this.setData({
@@ -101,38 +114,52 @@ Component({
       })
       this.refreshingHandle()
     },
-    setupContainer() {
-      return new Promise((resolve) => {
-        wx.createSelectorQuery().in(this).select('#container').boundingClientRect((res) => {
-          resolve(res)
-        })
+    updateBoundingRect() {
+      return new Promise(resolve => {
+        wx.createSelectorQuery()
+          .in(this)
+          .select('#container')
+          .boundingClientRect((res) => {
+            this.containerRect = {
+              left: res.left, top: res.top, width: res.width, height: res.height
+            }
+            wx.createSelectorQuery()
+              .in(this)
+              .select('#container-view')
+              .boundingClientRect(res => {
+                console.log(res)
+                this.contentRect = {
+                  left: res.left, top: res.top - 8, width: res.width, height: res.height + 16
+                }
+                resolve({containerRect: this.containerRect, contentRect: this.contentRect})
+              })
+              .exec()
+          })
           .exec()
-      }).then((res) => {
-        this.containerRect = {
-          left: res.left, top: res.top, width: res.width, height: res.height
-        }
       })
     },
     setupScrollViewRectUpdatingHandle() {
       this.leadingRefreshScrollViewRectUpdatingHandle = () => {
-        wx.createSelectorQuery().in(this).select('#container-view').boundingClientRect((res) => {
-          this.leadingScrollViewOffset = 0
-          this.trailingScrollViewOffset = res.height - this.containerRect.height
-          this.contentRect = {
-            left: res.left, top: res.top, width: res.width, height: res.height
-          }
-        })
-          .exec()
+        this.updateScrollViewOffsets()
+        // wx.createSelectorQuery().in(this).select('#container-view').boundingClientRect((res) => {
+        //   this.leadingScrollViewOffset = 0
+        //   this.trailingScrollViewOffset = res.height - this.containerRect.height
+        //   this.contentRect = {
+        //     left: res.left, top: res.top, width: res.width, height: res.height
+        //   }
+        // })
+        //   .exec()
       }
       this.trailingRefreshScrollViewRectUpdatingHandle = () => {
-        wx.createSelectorQuery().in(this).select('#container-view').boundingClientRect((res) => {
-          this.trailingScrollViewOffset = res.height -
-            this.leadingScrollViewOffset - this.containerRect.height
-          this.contentRect = {
-            left: res.left, top: res.top, width: res.width, height: res.height
-          }
-        })
-          .exec()
+        this.updateScrollViewOffsets()
+        // wx.createSelectorQuery().in(this).select('#container-view').boundingClientRect((res) => {
+        //   this.trailingScrollViewOffset = res.height -
+        //     this.leadingScrollViewOffset - this.containerRect.height
+        //   this.contentRect = {
+        //     left: res.left, top: res.top, width: res.width, height: res.height
+        //   }
+        // })
+        //   .exec()
       }
     },
     setupLeadingRefresher() {
@@ -201,9 +228,8 @@ Component({
           }
         }
       }
-
-      const handleLeadingAbort = initAbortHandle(this.properties.leadingRefresherType).bind(this)
-      const handleTrailingAbort = initAbortHandle(this.properties.trailingRefresherType).bind(this)
+      const handleLeadingAbort = initAbortHandle(this.properties.leadingRefresherType)
+      const handleTrailingAbort = initAbortHandle(this.properties.trailingRefresherType)
 
       this.handleAbort = () => {
         handleLeadingAbort({
@@ -290,6 +316,8 @@ Component({
       }
     },
     setupPullingHandle() {
+      console.log(this.properties.leadingRefresherType)
+      console.log(this.properties.trailingRefresherType)
       const leadingPullingEventAction = this.initPullingEventAction(
         this.properties.leadingRefresherType
       )
@@ -310,7 +338,11 @@ Component({
           lottieRefresherAnimation: this.lottieLeadingRefresher,
           onPullingEvent: 'onLeadingPulling',
           action: (offset, percentage) => {
-            this.setData({leadingPullingOffset: offset, leadingPullingPercentage: percentage})
+            this.setData({
+              leadingPullingOffset: offset,
+              leadingPullingPercentage: percentage,
+              scrollTop: this.leadingScrollViewOffset
+            })
           }
         })
 
@@ -324,54 +356,52 @@ Component({
           lottieRefresherAnimation: this.lottieTrailingRefresher,
           onPullingEvent: 'onTrailingPulling',
           action: (offset, percentage) => {
-            this.setData({trailingPullingOffset: offset, trailingPullingPercentage: percentage})
+            this.setData({
+              trailingPullingOffset: offset,
+              trailingPullingPercentage: percentage,
+              scrollTop: this.leadingScrollViewOffset
+            })
           }
         })
       }
     },
-    initPullingEventAction(refresherType) {
-      switch (refresherType.type) {
-        case 'lottie-loading':
-        case 'custom-loading':
-          return (
-            {
-              delta,
-              statues,
-              refresherType,
-              scrollViewOffset,
-              pullingOffset,
-              pullingThreshold,
-              lottieRefresherAnimation,
-              onPullingEvent,
-              action,
-            }
-          ) => {
-            if (statues.value === 'refreshing') return
-            if (scrollViewOffset === 0) {
-              statues.value = 'pulling'
-              const newPullingOffset = pullingOffset + (Math.pow(delta - 1, 3) + 1) * 20
-              if (newPullingOffset <= 0) {
-                action(0, 0)
-                return
-              }
-              const newPullingPercentage = Math.min(newPullingOffset, pullingThreshold) /
-                pullingThreshold
-              this.triggerEvent(onPullingEvent, {
-                instance: this,
-                offset: newPullingOffset,
-                percentage: newPullingPercentage
-              })
-
-              if (refresherType.type === 'lottie-loading') {
-                lottieRefresherAnimation.goToAndStop(
-                  newPullingPercentage * lottieRefresherAnimation.totalFrames * 0.75, true
-                )
-              }
-              action(newPullingOffset, newPullingPercentage)
-            }
+    initPullingEventAction() {
+      return (
+        {
+          delta,
+          statues,
+          refresherType,
+          scrollViewOffset,
+          pullingOffset,
+          pullingThreshold,
+          lottieRefresherAnimation,
+          onPullingEvent,
+          action,
+        }
+      ) => {
+        if (statues.value === 'refreshing') return
+        if (scrollViewOffset < 1 || scrollViewOffset === 8) {
+          statues.value = 'pulling'
+          const newPullingOffset = pullingOffset + (Math.pow(delta - 1, 3) + 1) * 20
+          if (newPullingOffset <= 0) {
+            action(0, 0)
+            return
           }
-        default:
-          return () => {}
+          const newPullingPercentage = Math.min(newPullingOffset, pullingThreshold) /
+            pullingThreshold
+          this.triggerEvent(onPullingEvent, {
+            instance: this,
+            offset: newPullingOffset,
+            percentage: newPullingPercentage
+          })
+
+          if (refresherType.type === 'lottie-loading') {
+            lottieRefresherAnimation.goToAndStop(
+              newPullingPercentage * lottieRefresherAnimation.totalFrames * 0.75, true
+            )
+          }
+          action(newPullingOffset, newPullingPercentage)
+        }
       }
     },
     setupRefreshingHandle() {
@@ -469,7 +499,10 @@ Component({
               }
             }
           default:
-            return () => {}
+            return ({status}) => {
+              console.log('none')
+              status.value = 'idle'
+            }
         }
       }
 
@@ -552,10 +585,19 @@ Component({
       })
     },
     onScroll(e) {
+      console.log('==========')
+      console.log(this.leadingRefresherState)
+      console.log(this.trailingRefresherState)
       if (this.leadingRefresherState.value === 'pulling' || this.trailingRefresherState.value === 'pulling') return
-      const {scrollTop, scrollHeight} = e.detail
+      const {scrollTop} = e.detail
       this.leadingScrollViewOffset = scrollTop
-      this.trailingScrollViewOffset = scrollHeight - scrollTop - this.containerRect.height
+      this.trailingScrollViewOffset = this.contentRect.height -
+        this.containerRect.height - this.leadingScrollViewOffset
+      console.log('--------------------------')
+      console.log(e.detail)
+      console.log(this.contentRect)
+      console.log(this.leadingScrollViewOffset)
+      console.log(this.trailingScrollViewOffset)
       this.sentinelLoadingHandle()
     },
     onTouchStart(e) {

@@ -1,11 +1,34 @@
+import {RefresherType} from "../../components/index";
 
 Page({
   data: {
     arr: [],
-    canLoadMore: true,
-    triggered: false,
-    containerRect: null,
+    leadingRefresher: new RefresherType({type: 'none'}),
   },
+  onLoad() {
+    wx.request({
+      url: 'https://random-data-api.com/api/users/random_user?size=20',
+      success: result => {
+        const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
+        this.selectComponent('#refreshable-view').updateScrollViewOffsets()
+        this.setData({
+          arr
+        })
+      }
+    })
+  },
+  // onShow() {
+  //   wx.request({
+  //     url: 'https://random-data-api.com/api/users/random_user?size=20',
+  //     success: result => {
+  //       const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
+  //       this.selectComponent('#refreshable-view').outerRefreshing()
+  //       this.setData({
+  //         arr
+  //       })
+  //     }
+  //   })
+  // },
 
   getRandomColor() {
     const rgb = []

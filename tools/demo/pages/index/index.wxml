@@ -1,16 +1,19 @@
-<refreshable-view bind:onLeadingRefreshing="onRefresh" canTrailingRefreshing="{{canLoadMore}}" bind:onTrailingRefreshing="loadMore" style="height: 100%">
-    <view class="card" wx:for="{{arr}}">
-        <image class="image" src="https://avatars.dicebear.com/api/micah/{{item.uid}}.svg?background=%23{{item.color}}"></image>
-        <view class="content-container">
-            <view style="display: flex; flex-direction: column; justify-content: center">
-                <text class="title">{{item.first_name + ' ' + item.last_name}}</text>
-                <view style="height: 4px"></view>
-                <text class="subtitle">{{'Birthday: ' + item.date_of_birth}}</text>
-                <view style="height: 2px"></view>
-                <text class="subtitle">{{'Country: ' + item.address.country}}</text>
+
+<view style="position: absolute; top: 50px; bottom: 0; width: 100%">
+    <refreshable-view id="refreshable-view" bind:onLeadingRefreshing="onRefresh" bind:onTrailingRefreshing="loadMore" style="height: 100%">
+        <view class="card" wx:for="{{arr}}">
+            <image class="image" src="https://avatars.dicebear.com/api/micah/{{item.uid}}.svg?background=%23{{item.color}}"></image>
+            <view class="content-container">
+                <view style="display: flex; flex-direction: column; justify-content: center">
+                    <text class="title">{{item.first_name + ' ' + item.last_name}}</text>
+                    <view style="height: 4px"></view>
+                    <text class="subtitle">{{'Birthday: ' + item.date_of_birth}}</text>
+                    <view style="height: 2px"></view>
+                    <text class="subtitle">{{'Country: ' + item.address.country}}</text>
+                </view>
+                <image wx:if="{{item.subscription.status === 'Active'}}" src="https://img.icons8.com/plasticine/100/000000/like--v2.png" style="width: 20px; height: 20px"></image>
+                <image wx:else src="https://img.icons8.com/plasticine/100/000000/like--v1.png" style="width: 20px; height: 20px"></image>
             </view>
-            <image wx:if="{{item.subscription.status === 'Active'}}" src="https://img.icons8.com/plasticine/100/000000/like--v2.png" style="width: 20px; height: 20px"></image>
-            <image wx:else src="https://img.icons8.com/plasticine/100/000000/like--v1.png" style="width: 20px; height: 20px"></image>
         </view>
-    </view>
-</refreshable-view>
+    </refreshable-view>
+</view>
