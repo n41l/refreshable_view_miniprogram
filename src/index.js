@@ -377,7 +377,7 @@ Component({
             ) => {
               if (status.value !== 'pulling') return
               let endPullingOffset = 0
-              if (pullingOffset > pullingThreshold) {
+              if (pullingOffset > pullingThreshold && canRefresh) {
                 status.value = 'refreshing'
                 endPullingOffset = refresherHeight
 
@@ -467,11 +467,14 @@ Component({
             return (
               {
                 status,
+                canRefresh,
                 pullingOffset,
                 action
               }
             ) => {
-              status.value = 'refreshing'
+              if (canRefresh) {
+                status.value = 'refreshing'
+              }
               this._pullingBackAnimation({
                 from: pullingOffset,
                 to: 0,

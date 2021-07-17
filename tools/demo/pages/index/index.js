@@ -41,7 +41,7 @@ Page({
   },
 
   onPulling(e) {
-    // console.log('onPulling:', e)
+    console.log('onPulling:', e)
   },
 
   onRefresh(e) {
@@ -85,10 +85,10 @@ Page({
   },
 
   onRestore(e) {
-    // console.log('onRestore:', e)
+    console.log('onRestore:', e)
   },
 
   onAbort(e) {
-    // console.log('onAbort', e)
+    console.log('onAbort', e)
   },
 })
