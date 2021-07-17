@@ -10,7 +10,7 @@ Page({
       url: 'https://random-data-api.com/api/users/random_user?size=20',
       success: result => {
         const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
-        this.selectComponent('#refreshable-view').updateScrollViewOffsets()
+        this.selectComponent('#refreshable-view').initialize()
         this.setData({
           arr
         })
