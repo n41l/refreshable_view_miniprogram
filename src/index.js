@@ -58,6 +58,11 @@ Component({
     trailingPullingThreshold: {
       type: Number,
       value: 50
+    },
+
+    minimumRefreshDuration: {
+      type: Number,
+      value: 1200
     }
   },
 
@@ -380,24 +385,29 @@ Component({
                 endPullingOffset = refresherHeight
 
                 lottieRefresherAnimation.play()
-
+                const triggerTime = new Date().getTime()
                 this.triggerEvent(onRefreshingEvent, {
                   instance: this,
                   success: (outerCompletion) => {
-                    if (status.value === 'refreshing' && canRefresh) {
-                      this._pullingBackAnimation({
-                        from: pullingOffset,
-                        to: 0,
-                        action,
-                        completion: () => {
-                          status.value = 'idle'
-                          lottieRefresherAnimation.goToAndStop(0, true)
-                          this.updateScrollViewOffsets()
-                          if (outerCompletion) {
-                            outerCompletion()
+                    if (status.value === 'refreshing') {
+                      const now = new Date().getTime()
+                      const delta = now - triggerTime
+                      console.log(delta)
+                      setTimeout(() => {
+                        this._pullingBackAnimation({
+                          from: pullingOffset,
+                          to: 0,
+                          action,
+                          completion: () => {
+                            status.value = 'idle'
+                            lottieRefresherAnimation.goToAndStop(0, true)
+                            this.updateScrollViewOffsets()
+                            if (outerCompletion) {
+                              outerCompletion()
+                            }
                           }
-                        }
-                      })
+                        })
+                      }, Math.max(this.properties.minimumRefreshDuration - delta, 0))
                     }
                   },
                   fail: () => {
@@ -431,20 +441,25 @@ Component({
               if (pullingOffset > pullingThreshold && canRefresh) {
                 status.value = 'refreshing'
                 endPullingOffset = refresherHeight
+                const triggerTime = new Date().getTime()
                 this.triggerEvent(onRefreshingEvent, {
                   instance: this,
                   success: (outerCompletion) => {
                     if (status.value === 'refreshing') {
-                      this._pullingBackAnimation({
-                        from: pullingOffset,
-                        to: 0,
-                        action,
-                        completion: () => {
-                          status.value = 'idle'
-                          this.updateScrollViewOffsets()
-                          if (outerCompletion) outerCompletion()
-                        }
-                      })
+                      const now = new Date().getTime()
+                      const delta = now - triggerTime
+                      setTimeout(() => {
+                        this._pullingBackAnimation({
+                          from: pullingOffset,
+                          to: 0,
+                          action,
+                          completion: () => {
+                            status.value = 'idle'
+                            this.updateScrollViewOffsets()
+                            if (outerCompletion) outerCompletion()
+                          }
+                        })
+                      }, Math.max(this.properties.minimumRefreshDuration - delta, 0))
                     }
                   },
                   fail: () => {
@@ -499,10 +514,10 @@ Component({
 
       const leadingRefreshingEventAction = initialRefreshingAction(
         this.properties.leadingRefresherType
-      ).bind(this)
+      )
       const trailingRefreshingEventAction = initialRefreshingAction(
         this.properties.trailingRefresherType
-      ).bind(this)
+      )
 
       this.refreshingHandle = () => {
         leadingRefreshingEventAction({
