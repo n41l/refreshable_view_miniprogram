@@ -274,21 +274,21 @@ export class Animation {
   }
 
   fire(action, completion) {
-    this.startTime = Date.now()
+    this.startTime = new Date().getTime()
     this.action = action
     this._doAnimation(completion)
   }
 
   _doAnimation(completion) {
-    const now = Date.now()
+    const now = new Date().getTime()
     const elapsed = now - this.startTime
     const keyframe = this.timingFunc(elapsed, this.from, this.to, this.duration)
     if (elapsed >= this.duration) {
       this.action(this.to)
+      cancelAnimationSync(this.sync)
       if (completion) {
         completion()
       }
-      cancelAnimationSync(this.sync)
       return
     }
 
@@ -296,6 +296,6 @@ export class Animation {
 
     this.sync = animationSync(() => {
       this._doAnimation(completion)
-    })
+    }, now)
   }
 }

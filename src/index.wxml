@@ -1,5 +1,5 @@
 <!--refreshable-view/refreshable-view.wxml-->
-<view style="position: relative; flex: 1">
+<view style="position: relative; height: 100%">
     <view class=".leading-refresher-container"
           style="height: {{leadingPullingOffset}}px">
         <slot wx:if="{{leadingRefresherType === 'custom-loading'}}" name="leadingRefresher"></slot>
@@ -10,7 +10,7 @@
     <scroll-view
             id="container"
             class="container"
-            style="top: {{leadingPullingOffset}}px; bottom: {{trailingPullingOffset}}px"
+            style="top: {{leadingPullingOffset - trailingPullingOffset}}px; bottom: {{trailingPullingOffset - leadingPullingOffset}}px"
             throttle="{{false}}"
             scroll-y
             enhanced="{{true}}"

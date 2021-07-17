@@ -96,14 +96,14 @@ Component({
     updateScrollViewOffsets() {
       this.updateBoundingRect()
         .then(res => {
-          console.log(res)
+          // console.log(res)
           if (this.leadingScrollViewOffset === undefined) {
             this.leadingScrollViewOffset = 0
           }
           this.trailingScrollViewOffset = res.contentRect.height -
             res.containerRect.height - this.leadingScrollViewOffset
-          console.log(this.leadingScrollViewOffset)
-          console.log(this.trailingScrollViewOffset)
+          // console.log(this.leadingScrollViewOffset)
+          // console.log(this.trailingScrollViewOffset)
         })
         .catch()
     },
@@ -120,6 +120,7 @@ Component({
           .in(this)
           .select('#container')
           .boundingClientRect((res) => {
+            console.log(res)
             this.containerRect = {
               left: res.left, top: res.top, width: res.width, height: res.height
             }
@@ -127,9 +128,10 @@ Component({
               .in(this)
               .select('#container-view')
               .boundingClientRect(res => {
-                console.log(res)
+                const info = wx.getSystemInfoSync()
+                console.log(info.platform)
                 this.contentRect = {
-                  left: res.left, top: res.top - 8, width: res.width, height: res.height + 16
+                  left: res.left, top: res.top - 8, width: res.width, height: res.height + (info.platform === 'ios' ? 8 : 16)
                 }
                 resolve({containerRect: this.containerRect, contentRect: this.contentRect})
               })
@@ -316,8 +318,8 @@ Component({
       }
     },
     setupPullingHandle() {
-      console.log(this.properties.leadingRefresherType)
-      console.log(this.properties.trailingRefresherType)
+      // console.log(this.properties.leadingRefresherType)
+      // console.log(this.properties.trailingRefresherType)
       const leadingPullingEventAction = this.initPullingEventAction(
         this.properties.leadingRefresherType
       )
@@ -378,7 +380,7 @@ Component({
         }
       ) => {
         if (statues.value === 'refreshing') return
-        if (scrollViewOffset < 1 || scrollViewOffset === 8) {
+        if (scrollViewOffset < 1) {
           statues.value = 'pulling'
           const newPullingOffset = pullingOffset + (Math.pow(delta - 1, 3) + 1) * 20
           if (newPullingOffset <= 0) {
@@ -436,12 +438,12 @@ Component({
                         to: 0,
                         action,
                         completion: () => {
+                          innerCompletion()
                           if (outerCompletion) {
                             outerCompletion()
                           }
                           lottieRefresherAnimation.goToAndStop(0, true)
                           status.value = 'idle'
-                          innerCompletion()
                         }
                       })
                     }
@@ -498,7 +500,7 @@ Component({
             }
           default:
             return ({status}) => {
-              console.log('none')
+              // console.log('none')
               status.value = 'idle'
             }
         }
@@ -588,14 +590,15 @@ Component({
       console.log(this.trailingRefresherState)
       if (this.leadingRefresherState.value === 'pulling' || this.trailingRefresherState.value === 'pulling') return
       const {scrollTop} = e.detail
-      this.leadingScrollViewOffset = scrollTop
-      this.trailingScrollViewOffset = this.contentRect.height -
-        this.containerRect.height - this.leadingScrollViewOffset
       console.log('--------------------------')
       console.log(e.detail)
       console.log(this.contentRect)
       console.log(this.leadingScrollViewOffset)
       console.log(this.trailingScrollViewOffset)
+      this.leadingScrollViewOffset = scrollTop
+      this.trailingScrollViewOffset = this.contentRect.height -
+        this.containerRect.height - this.leadingScrollViewOffset
+
       this.sentinelLoadingHandle()
     },
     onTouchStart(e) {
