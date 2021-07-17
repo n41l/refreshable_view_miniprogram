@@ -1,15 +1,16 @@
 <!--refreshable-view/refreshable-view.wxml-->
-<view class=".leading-refresher-container"
-      style="height: {{leadingPullingOffset}}px">
-    <slot wx:if="{{leadingRefresherType === 'custom-loading'}}" name="leadingRefresher"></slot>
-    <view wx:else class="leading-refresher">
-        <canvas id="leading-refresher-canvas" type="2d" style="width: 100%; height: 100%;"></canvas>
+<view style="position: relative; height: 100%">
+    <view class=".leading-refresher-container"
+          style="height: {{leadingPullingOffset}}px">
+        <slot wx:if="{{leadingRefresherType === 'custom-loading'}}" name="leadingRefresher"></slot>
+        <view wx:else class="leading-refresher">
+            <canvas id="leading-refresher-canvas" type="2d" style="width: 100%; height: 100%;"></canvas>
+        </view>
     </view>
-</view>
-<view style="flex: 1; overflow: scroll">
     <scroll-view
             id="container"
             class="container"
+            style="top: {{leadingPullingOffset - trailingPullingOffset}}px; bottom: {{trailingPullingOffset - leadingPullingOffset}}px"
             throttle="{{false}}"
             scroll-y
             enhanced="{{true}}"
@@ -25,12 +26,12 @@
             <slot></slot>
         </view>
     </scroll-view>
-</view>
-<view class=".trailing-refresher-container"
-      style="height: {{trailingPullingOffset}}px">
-    <slot wx:if="{{trailingRefresherType === 'custom-loading'}}" name="trailingRefresher"></slot>
-    <view wx:else class="trailing-refresher">
-        <canvas id="trailing-refresher-canvas" type="2d" style="width: 100%; height: 100%;"></canvas>
+    <view class=".trailing-refresher-container"
+          style="height: {{trailingPullingOffset}}px">
+        <slot wx:if="{{trailingRefresherType === 'custom-loading'}}" name="trailingRefresher"></slot>
+        <view wx:else class="trailing-refresher">
+            <canvas id="trailing-refresher-canvas" type="2d" style="width: 100%; height: 100%;"></canvas>
+        </view>
     </view>
 </view>
 

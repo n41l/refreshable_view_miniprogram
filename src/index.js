@@ -71,7 +71,8 @@ Component({
     trailingPullingOffset: 0,
 
     leadingPullingPercentage: 0,
-    trailingPullingPercentage: 0
+    trailingPullingPercentage: 0,
+    scrollTop: 0,
 
   },
 
@@ -79,14 +80,12 @@ Component({
     attached() {
       this.leadingRefresherState = {value: 'idle'}
       this.trailingRefresherState = {value: 'idle'}
-      this.setupAbortHandle()
+
+      this.setupLottieRefreshers()
       this.setupSentinelLoadingHandle()
+      this.setupAbortHandle()
       this.setupPullingHandle()
       this.setupRefreshingHandle()
-      this.setupScrollViewRectUpdatingHandle()
-      Promise.all(this.setupLeadingRefresher().concat([this.setupContainer()])).then(() => {
-        this.initialRefreshing()
-      }).catch()
     }
   },
 
@@ -94,48 +93,45 @@ Component({
    * 组件的方法列表
    */
   methods: {
-    initialRefreshing() {
-      this.leadingRefresherState.value = 'pulling'
-      this.setData({
-        leadingPullingOffset: this.data.leadingPullingThreshold + 1
-      })
-      this.refreshingHandle()
+    initialize() {
+      this.updateScrollViewOffsets()
     },
-    setupContainer() {
-      return new Promise((resolve) => {
-        wx.createSelectorQuery().in(this).select('#container').boundingClientRect((res) => {
-          resolve(res)
-        })
-          .exec()
-      }).then((res) => {
-        this.containerRect = {
-          left: res.left, top: res.top, width: res.width, height: res.height
-        }
-      })
-    },
-    setupScrollViewRectUpdatingHandle() {
-      this.leadingRefreshScrollViewRectUpdatingHandle = () => {
-        wx.createSelectorQuery().in(this).select('#container-view').boundingClientRect((res) => {
-          this.leadingScrollViewOffset = 0
-          this.trailingScrollViewOffset = res.height - this.containerRect.height
-          this.contentRect = {
-            left: res.left, top: res.top, width: res.width, height: res.height
+    updateScrollViewOffsets() {
+      this.updateBoundingRect()
+        .then(res => {
+          if (this.leadingScrollViewOffset === undefined) {
+            this.leadingScrollViewOffset = 0
           }
+          this.trailingScrollViewOffset = res.contentRect.height -
+            res.containerRect.height - this.leadingScrollViewOffset
         })
-          .exec()
-      }
-      this.trailingRefreshScrollViewRectUpdatingHandle = () => {
-        wx.createSelectorQuery().in(this).select('#container-view').boundingClientRect((res) => {
-          this.trailingScrollViewOffset = res.height -
-            this.leadingScrollViewOffset - this.containerRect.height
-          this.contentRect = {
-            left: res.left, top: res.top, width: res.width, height: res.height
-          }
-        })
-          .exec()
-      }
+        .catch()
     },
-    setupLeadingRefresher() {
+    updateBoundingRect() {
+      return new Promise(resolve => {
+        wx.createSelectorQuery()
+          .in(this)
+          .select('#container')
+          .boundingClientRect((res) => {
+            this.containerRect = {
+              left: res.left, top: res.top, width: res.width, height: res.height
+            }
+            wx.createSelectorQuery()
+              .in(this)
+              .select('#container-view')
+              .boundingClientRect(res => {
+                const info = wx.getSystemInfoSync()
+                this.contentRect = {
+                  left: res.left, top: res.top - 8, width: res.width, height: res.height + (info.platform === 'ios' ? 8 : 16)
+                }
+                resolve({containerRect: this.containerRect, contentRect: this.contentRect})
+              })
+              .exec()
+          })
+          .exec()
+      })
+    },
+    setupLottieRefreshers() {
       const result = []
       if (this.properties.leadingRefresherType.type === 'lottie-loading') {
         result.push(this._lottieLoading('leading-refresher-canvas', this.properties.leadingRefresherType.data)
@@ -201,9 +197,8 @@ Component({
           }
         }
       }
-
-      const handleLeadingAbort = initAbortHandle(this.properties.leadingRefresherType).bind(this)
-      const handleTrailingAbort = initAbortHandle(this.properties.trailingRefresherType).bind(this)
+      const handleLeadingAbort = initAbortHandle(this.properties.leadingRefresherType)
+      const handleTrailingAbort = initAbortHandle(this.properties.trailingRefresherType)
 
       this.handleAbort = () => {
         handleLeadingAbort({
@@ -230,8 +225,7 @@ Component({
               canRefresh,
               scrollViewOffset,
               pullingThreshold,
-              onRefreshingEvent,
-              innerCompletion,
+              onRefreshingEvent
             }
           ) => {
             if (scrollViewOffset > 0 && scrollViewOffset < pullingThreshold && canRefresh) {
@@ -242,8 +236,8 @@ Component({
                 success: (outerCompletion) => {
                   if (status.value === 'refreshing') {
                     status.value = 'idle'
+                    this.updateScrollViewOffsets()
                     if (outerCompletion) outerCompletion()
-                    innerCompletion()
                   }
                 },
                 fail: () => {
@@ -271,10 +265,7 @@ Component({
           canRefresh: this.properties.enableLeadingRefresh,
           scrollViewOffset: this.leadingScrollViewOffset,
           pullingThreshold: this.properties.leadingPullingThreshold,
-          onRefreshingEvent: 'onLeadingRefreshing',
-          innerCompletion: () => {
-            this.leadingRefreshScrollViewRectUpdatingHandle()
-          }
+          onRefreshingEvent: 'onLeadingRefreshing'
         })
 
         trailingSentinelLoadingHandle({
@@ -282,25 +273,56 @@ Component({
           canRefresh: this.properties.enableTrailingRefresh,
           scrollViewOffset: this.trailingScrollViewOffset,
           pullingThreshold: this.properties.trailingPullingThreshold,
-          onRefreshingEvent: 'onTrailingRefreshing',
-          innerCompletion: () => {
-            this.trailingRefreshScrollViewRectUpdatingHandle()
-          }
+          onRefreshingEvent: 'onTrailingRefreshing'
         })
       }
     },
     setupPullingHandle() {
-      const leadingPullingEventAction = this.initPullingEventAction(
-        this.properties.leadingRefresherType
-      )
-      const trailingPullingEventAction = this.initPullingEventAction(
-        this.properties.trailingRefresherType
-      )
+      const initPullingEventAction = (
+        {
+          delta,
+          statues,
+          refresherType,
+          scrollViewOffset,
+          pullingOffset,
+          pullingThreshold,
+          lottieRefresherAnimation,
+          onPullingEvent,
+          action,
+        }
+      ) => {
+        if (refresherType.type !== 'sentinel-loading' && statues.value === 'refreshing') return
+        if (scrollViewOffset < 1) {
+          if (refresherType.type === 'sentinel-loading') {
+            statues.value = 'refreshing'
+          } else {
+            statues.value = 'pulling'
+          }
+          const newPullingOffset = pullingOffset + (Math.pow(delta - 1, 3) + 1) * 20
+          if (newPullingOffset <= 0) {
+            action(0, 0)
+            return
+          }
+          const newPullingPercentage = Math.min(newPullingOffset, pullingThreshold) /
+            pullingThreshold
+          this.triggerEvent(onPullingEvent, {
+            instance: this,
+            offset: newPullingOffset,
+            percentage: newPullingPercentage
+          })
 
+          if (refresherType.type === 'lottie-loading') {
+            lottieRefresherAnimation.goToAndStop(
+              newPullingPercentage * lottieRefresherAnimation.totalFrames * 0.75, true
+            )
+          }
+          action(newPullingOffset, newPullingPercentage)
+        }
+      }
       this.pullingHandle = (e) => {
         const delta = Math.min(e.touches[0].pageY - this.lastTouch.pageY, 100) / 100
 
-        leadingPullingEventAction({
+        initPullingEventAction({
           delta,
           statues: this.leadingRefresherState,
           refresherType: this.properties.leadingRefresherType,
@@ -310,11 +332,14 @@ Component({
           lottieRefresherAnimation: this.lottieLeadingRefresher,
           onPullingEvent: 'onLeadingPulling',
           action: (offset, percentage) => {
-            this.setData({leadingPullingOffset: offset, leadingPullingPercentage: percentage})
+            this.setData({
+              leadingPullingOffset: offset,
+              leadingPullingPercentage: percentage
+            })
           }
         })
 
-        trailingPullingEventAction({
+        initPullingEventAction({
           delta: -delta,
           statues: this.trailingRefresherState,
           refresherType: this.properties.trailingRefresherType,
@@ -324,54 +349,12 @@ Component({
           lottieRefresherAnimation: this.lottieTrailingRefresher,
           onPullingEvent: 'onTrailingPulling',
           action: (offset, percentage) => {
-            this.setData({trailingPullingOffset: offset, trailingPullingPercentage: percentage})
+            this.setData({
+              trailingPullingOffset: offset,
+              trailingPullingPercentage: percentage
+            })
           }
         })
-      }
-    },
-    initPullingEventAction(refresherType) {
-      switch (refresherType.type) {
-        case 'lottie-loading':
-        case 'custom-loading':
-          return (
-            {
-              delta,
-              statues,
-              refresherType,
-              scrollViewOffset,
-              pullingOffset,
-              pullingThreshold,
-              lottieRefresherAnimation,
-              onPullingEvent,
-              action,
-            }
-          ) => {
-            if (statues.value === 'refreshing') return
-            if (scrollViewOffset === 0) {
-              statues.value = 'pulling'
-              const newPullingOffset = pullingOffset + (Math.pow(delta - 1, 3) + 1) * 20
-              if (newPullingOffset <= 0) {
-                action(0, 0)
-                return
-              }
-              const newPullingPercentage = Math.min(newPullingOffset, pullingThreshold) /
-                pullingThreshold
-              this.triggerEvent(onPullingEvent, {
-                instance: this,
-                offset: newPullingOffset,
-                percentage: newPullingPercentage
-              })
-
-              if (refresherType.type === 'lottie-loading') {
-                lottieRefresherAnimation.goToAndStop(
-                  newPullingPercentage * lottieRefresherAnimation.totalFrames * 0.75, true
-                )
-              }
-              action(newPullingOffset, newPullingPercentage)
-            }
-          }
-        default:
-          return () => {}
       }
     },
     setupRefreshingHandle() {
@@ -388,14 +371,13 @@ Component({
                 pullingThreshold,
                 onRefreshingEvent,
                 action,
-                innerCompletion,
-                endPullingOffset,
-
               }
             ) => {
-              if (pullingOffset > pullingThreshold) {
+              if (status.value !== 'pulling') return
+              let endPullingOffset = 0
+              if (pullingOffset > pullingThreshold && canRefresh) {
                 status.value = 'refreshing'
-                endPullingOffset.value = refresherHeight
+                endPullingOffset = refresherHeight
 
                 lottieRefresherAnimation.play()
 
@@ -408,12 +390,12 @@ Component({
                         to: 0,
                         action,
                         completion: () => {
+                          status.value = 'idle'
+                          lottieRefresherAnimation.goToAndStop(0, true)
+                          this.updateScrollViewOffsets()
                           if (outerCompletion) {
                             outerCompletion()
                           }
-                          lottieRefresherAnimation.goToAndStop(0, true)
-                          status.value = 'idle'
-                          innerCompletion()
                         }
                       })
                     }
@@ -426,6 +408,11 @@ Component({
                 lottieRefresherAnimation.goToAndStop(0, true)
                 status.value = 'idle'
               }
+              this._pullingBackAnimation({
+                from: pullingOffset,
+                to: endPullingOffset,
+                action
+              })
             }
           case 'custom-loading':
             return (
@@ -437,13 +424,13 @@ Component({
                 pullingThreshold,
                 onRefreshingEvent,
                 action,
-                innerCompletion,
-                endPullingOffset,
               }
             ) => {
+              if (status.value !== 'pulling') return
+              let endPullingOffset = 0
               if (pullingOffset > pullingThreshold && canRefresh) {
                 status.value = 'refreshing'
-                endPullingOffset.value = refresherHeight
+                endPullingOffset = refresherHeight
                 this.triggerEvent(onRefreshingEvent, {
                   instance: this,
                   success: (outerCompletion) => {
@@ -454,8 +441,8 @@ Component({
                         action,
                         completion: () => {
                           status.value = 'idle'
+                          this.updateScrollViewOffsets()
                           if (outerCompletion) outerCompletion()
-                          innerCompletion()
                         }
                       })
                     }
@@ -467,9 +454,46 @@ Component({
               } else {
                 status.value = 'idle'
               }
+
+              this._pullingBackAnimation({
+                from: pullingOffset,
+                to: endPullingOffset,
+                action
+              })
+            }
+          case 'sentinel-loading':
+            return (
+              {
+                status,
+                canRefresh,
+                pullingOffset,
+                action
+              }
+            ) => {
+              if (canRefresh) {
+                status.value = 'refreshing'
+              }
+              this._pullingBackAnimation({
+                from: pullingOffset,
+                to: 0,
+                action
+              })
             }
           default:
-            return () => {}
+            return (
+              {
+                status,
+                pullingOffset,
+                action
+              }
+            ) => {
+              status.value = 'idle'
+              this._pullingBackAnimation({
+                from: pullingOffset,
+                to: 0,
+                action
+              })
+            }
         }
       }
 
@@ -481,7 +505,7 @@ Component({
       ).bind(this)
 
       this.refreshingHandle = () => {
-        this._handleRefreshing({
+        leadingRefreshingEventAction({
           status: this.leadingRefresherState,
           canRefresh: this.properties.enableLeadingRefresh,
           refresherHeight: this.properties.leadingRefresherType.height,
@@ -489,16 +513,12 @@ Component({
           pullingOffset: this.data.leadingPullingOffset,
           pullingThreshold: this.properties.leadingPullingThreshold,
           onRefreshingEvent: 'onLeadingRefreshing',
-          onRefreshingEventAction: leadingRefreshingEventAction,
           action: (res) => {
             this.setData({leadingPullingOffset: res})
-          },
-          innerCompletion: () => {
-            this.leadingRefreshScrollViewRectUpdatingHandle()
           }
         })
 
-        this._handleRefreshing({
+        trailingRefreshingEventAction({
           status: this.trailingRefresherState,
           canRefresh: this.properties.enableTrailingRefresh,
           refresherHeight: this.properties.trailingRefresherType.height,
@@ -506,56 +526,19 @@ Component({
           pullingOffset: this.data.trailingPullingOffset,
           pullingThreshold: this.properties.trailingPullingThreshold,
           onRefreshingEvent: 'onTrailingRefreshing',
-          onRefreshingEventAction: trailingRefreshingEventAction,
           action: (res) => {
             this.setData({trailingPullingOffset: res})
-          },
-          innerCompletion: () => {
-            this.trailingRefreshScrollViewRectUpdatingHandle()
           }
         })
       }
     },
-    _handleRefreshing(
-      {
-        status,
-        canRefresh,
-        refresherHeight,
-        lottieRefresherAnimation,
-        pullingOffset,
-        pullingThreshold,
-        onRefreshingEvent,
-        onRefreshingEventAction,
-        action,
-        innerCompletion,
-      }
-    ) {
-      if (status.value !== 'pulling') return
-      const endPullingOffset = {}
-      endPullingOffset.value = 0
-      onRefreshingEventAction({
-        status,
-        canRefresh,
-        lottieRefresherAnimation,
-        refresherHeight,
-        pullingOffset,
-        pullingThreshold,
-        onRefreshingEvent,
-        action,
-        innerCompletion,
-        endPullingOffset
-      })
-      this._pullingBackAnimation({
-        from: pullingOffset,
-        to: endPullingOffset.value,
-        action
-      })
-    },
     onScroll(e) {
       if (this.leadingRefresherState.value === 'pulling' || this.trailingRefresherState.value === 'pulling') return
-      const {scrollTop, scrollHeight} = e.detail
+      const {scrollTop} = e.detail
       this.leadingScrollViewOffset = scrollTop
-      this.trailingScrollViewOffset = scrollHeight - scrollTop - this.containerRect.height
+      this.trailingScrollViewOffset = this.contentRect.height -
+        this.containerRect.height - this.leadingScrollViewOffset
+
       this.sentinelLoadingHandle()
     },
     onTouchStart(e) {

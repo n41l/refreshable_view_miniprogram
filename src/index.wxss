@@ -1,17 +1,18 @@
 /* refreshable-view/refreshable-view.wxss */
 
 :host {
-  display: flex;
-  flex-direction: column;
+  overflow: hidden;
 }
 
 .container {
-  height: 100%;
+  position: absolute;
 }
 
 .leading-refresher-container {
   display: flex;
   flex-direction: column-reverse;
+  position: absolute;
+  top: 0;
   overflow: hidden;
   width: 100%;
 }
@@ -25,6 +26,9 @@
 .trailing-refresher-container {
   display: flex;
   flex-direction: column;
+  z-index: 3;
+  position: absolute;
+  bottom: 0;
   overflow: hidden;
   width: 100%;
 }

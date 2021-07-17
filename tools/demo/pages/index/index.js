@@ -1,11 +1,34 @@
+import {RefresherType} from "../../components/index";
 
 Page({
   data: {
     arr: [],
-    canLoadMore: true,
-    triggered: false,
-    containerRect: null,
+    leadingRefresher: new RefresherType({type: 'none'}),
   },
+  onLoad() {
+    wx.request({
+      url: 'https://random-data-api.com/api/users/random_user?size=20',
+      success: result => {
+        const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
+        this.selectComponent('#refreshable-view').initialize()
+        this.setData({
+          arr
+        })
+      }
+    })
+  },
+  // onShow() {
+  //   wx.request({
+  //     url: 'https://random-data-api.com/api/users/random_user?size=20',
+  //     success: result => {
+  //       const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
+  //       this.selectComponent('#refreshable-view').outerRefreshing()
+  //       this.setData({
+  //         arr
+  //       })
+  //     }
+  //   })
+  // },
 
   getRandomColor() {
     const rgb = []
@@ -25,7 +48,7 @@ Page({
     // e.detail.success()
     // 如果回调时间特别短会导致动画闪烁，我在考虑是否需要把基本时间判断加到内部
     const start = Date.now()
-    console.log(start)
+    // console.log(start)
     wx.request({
       url: 'https://random-data-api.com/api/users/random_user?size=20',
       success: result => {
@@ -52,7 +75,7 @@ Page({
       success: result => {
         const arr = result.data.map(res => { res.color = this.getRandomColor(); return res })
         e.detail.success(() => {
-          console.log('completion2')
+          // console.log('completion2')
           this.setData({
             arr: this.data.arr.concat(arr)
           })
