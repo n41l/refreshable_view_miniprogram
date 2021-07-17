@@ -1,5 +1,9 @@
 /* refreshable-view/refreshable-view.wxss */
 
+:host {
+  overflow: hidden;
+}
+
 .container {
   position: absolute;
 }

@@ -1,6 +1,6 @@
 
-<view style="position: absolute; top: 50px; bottom: 0; width: 100%">
-    <refreshable-view id="refreshable-view" bind:onLeadingRefreshing="onRefresh" bind:onTrailingRefreshing="loadMore" style="height: 100%">
+<view style="position: absolute; top: 50px; bottom: 0; width: 100%; display: flex; flex-direction: column">
+    <refreshable-view id="refreshable-view" bind:onLeadingRefreshing="onRefresh" bind:onTrailingRefreshing="loadMore" style="flex: 1">
         <view class="card" wx:for="{{arr}}">
             <image class="image" src="https://avatars.dicebear.com/api/micah/{{item.uid}}.svg?background=%23{{item.color}}"></image>
             <view class="content-container">

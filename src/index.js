@@ -113,7 +113,6 @@ Component({
           .in(this)
           .select('#container')
           .boundingClientRect((res) => {
-            console.log(res)
             this.containerRect = {
               left: res.left, top: res.top, width: res.width, height: res.height
             }
@@ -122,7 +121,6 @@ Component({
               .select('#container-view')
               .boundingClientRect(res => {
                 const info = wx.getSystemInfoSync()
-                console.log(info.platform)
                 this.contentRect = {
                   left: res.left, top: res.top - 8, width: res.width, height: res.height + (info.platform === 'ios' ? 8 : 16)
                 }
@@ -535,16 +533,8 @@ Component({
       }
     },
     onScroll(e) {
-      console.log('==========')
-      console.log(this.leadingRefresherState)
-      console.log(this.trailingRefresherState)
       if (this.leadingRefresherState.value === 'pulling' || this.trailingRefresherState.value === 'pulling') return
       const {scrollTop} = e.detail
-      console.log('--------------------------')
-      console.log(e.detail)
-      console.log(this.contentRect)
-      console.log(this.leadingScrollViewOffset)
-      console.log(this.trailingScrollViewOffset)
       this.leadingScrollViewOffset = scrollTop
       this.trailingScrollViewOffset = this.contentRect.height -
         this.containerRect.height - this.leadingScrollViewOffset
