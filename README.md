@@ -1,8 +1,8 @@
-# refreshable-view-miniprogram
+# refreshable_view_miniprogram
 
 [![Platforms](https://img.shields.io/badge/Platforms-WeChat-green?style=flat-square)](https://img.shields.io/badge/Platforms-macOS_iOS_tvOS_watchOS_Linux_Windows-Green?style=flat-square)
-[![](https://img.shields.io/npm/v/refreshable-view-miniprogram)](https://github.com/n41l/refreshable_view_miniprogram)
-[![](https://img.shields.io/npm/l/refreshable-view-miniprogram)](https://github.com/n41l/refreshable_view_miniprogram)
+[![](https://img.shields.io/npm/v/refreshable_view_miniprogram)](https://github.com/n41l/refreshable-view-miniprogram)
+[![](https://img.shields.io/npm/l/refreshable_view_miniprogram)](https://github.com/n41l/refreshable-gview-miniprogram)
 
 Refreshable View通过简单的方式实现了scroll-view的下拉刷新以及滚动加载，并且提供了便利的自定义机制，方便用户替换不同的刷新/加载方式与动画。
 
@@ -114,7 +114,7 @@ npm init
 ```json
 {
   "dependencies": {
-      "refreshable-view-miniprogram": "^0.1.0"
+      "refreshable_view_miniprogram": "^0.1.0"
     }
 }
 ```
