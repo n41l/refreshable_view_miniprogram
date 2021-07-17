@@ -29,6 +29,6 @@ export class LottieLoadings {
   }
 
   static circle() {
-    return new LottieLoadings({path: 'https://assets7.lottiefiles.com/private_files/lf30_r5qirj7i.json', speed: 2})
+    return new LottieLoadings({path: 'https://assets7.lottiefiles.com/private_files/lf30_r5qirj7i.json', speed: 3})
   }
 }
