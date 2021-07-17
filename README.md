@@ -1,8 +1,8 @@
 # refreshable-view-miniprogram
 
 [![Platforms](https://img.shields.io/badge/Platforms-WeChat-green?style=flat-square)](https://img.shields.io/badge/Platforms-macOS_iOS_tvOS_watchOS_Linux_Windows-Green?style=flat-square)
-[![](https://img.shields.io/npm/v/refreshable-view-miniprogram)](https://github.com/n41l/refreshable-view-miniprogram)
-[![](https://img.shields.io/npm/l/refreshable-view-miniprogram)](https://github.com/n41l/refreshable-view-miniprogram)
+[![](https://img.shields.io/npm/v/refreshable-view-miniprogram)](https://github.com/n41l/refreshable_view_miniprogram)
+[![](https://img.shields.io/npm/l/refreshable-view-miniprogram)](https://github.com/n41l/refreshable_view_miniprogram)
 
 Refreshable View通过简单的方式实现了scroll-view的下拉刷新以及滚动加载，并且提供了便利的自定义机制，方便用户替换不同的刷新/加载方式与动画。
 
@@ -23,11 +23,11 @@ Refreshable View通过简单的方式实现了scroll-view的下拉刷新以及�
 - [x] 滚动刷新/加载
 - [x] 基于 [lottie](https://github.com/airbnb/lottie-web) 的加载动画
 - [x] 自定义 `lottie` 动画
-- [ ] 兼容刷新/加载打断
+- [x] 兼容刷新/加载打断
+- [x] 加载动画时长控制
 - [ ] 完全自定义的加载动画（未测试）
-- [x] 初始加载
-- [ ] 初始加载页动画
 - [ ] 兼容横向刷新/加载
+- [ ] 加载结果提示
 
 ## 效果展示
 
@@ -114,7 +114,7 @@ npm init
 ```json
 {
   "dependencies": {
-      "refreshable-view-miniprogram": "^0.0.1"
+      "refreshable-view-miniprogram": "^0.1.0"
     }
 }
 ```
@@ -176,6 +176,7 @@ import {RefresherType} from "refreshable-view-miniprogram/index";
 | trailingRefresherType | RefresherType | 参见下文 | 控制 Trailing Refresher 的表现 |
 | leadingPullingThreshold | Number | 50 | 控制激活 Leading Refresh 的阈值 |
 | trailingPullingThreshold | Number | 50 | 控制激活 Trailing Refresh 的阈值 |
+| minimumRefreshDuration | Number | 1200 | 控制刷新动画时长 ｜
 
 ### RefresherType类型说明
 
