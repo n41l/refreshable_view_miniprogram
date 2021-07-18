@@ -114,7 +114,7 @@ npm init
 ```json
 {
   "dependencies": {
-      "refreshable_view_miniprogram": "^0.1.0"
+      "refreshable_view_miniprogram": "^0.1.2"
     }
 }
 ```
@@ -227,7 +227,7 @@ LottieLoadings({
 
 - `onLeadingPulling` 与 `onTrailingPulling` 事件
 
-当对应 RefresherType 的类型为 `'lottie-loading'` 或 `'custom-loading'` 时才会触发此类事件，并且回返回以下数据信息：
+所有Refresher Type 都会触发此类事件，并且回返回以下数据信息：
 
 ```js
 {
@@ -248,6 +248,10 @@ LottieLoadings({
   fial                         // 暂未实现
 }
 ```
+
+### 组件内容布局说明
+
+为了保证统一性，组件的 `container-view` 默认对其子内容（即用户添加的滚动内容）使用 `flex` 布局。关于 `flex` 布局可以[参考](https://css-tricks.com/snippets/css/a-guide-to-flexbox/)
 
 ### 使用案例
 

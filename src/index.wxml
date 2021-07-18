@@ -19,6 +19,7 @@
             bind:scroll="onScroll"
     >
         <view id="container-view"
+              class="container-view"
               bindtouchstart="onTouchStart"
               bindtouchmove="onTouchMove"
               bindtouchend="onTouchEnd"

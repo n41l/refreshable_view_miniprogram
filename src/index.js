@@ -125,9 +125,8 @@ Component({
               .in(this)
               .select('#container-view')
               .boundingClientRect(res => {
-                const info = wx.getSystemInfoSync()
                 this.contentRect = {
-                  left: res.left, top: res.top - 8, width: res.width, height: res.height + (info.platform === 'ios' ? 8 : 16)
+                  left: res.left, top: res.top, width: res.width, height: res.height
                 }
                 resolve({containerRect: this.containerRect, contentRect: this.contentRect})
               })
