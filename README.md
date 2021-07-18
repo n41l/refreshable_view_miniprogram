@@ -253,7 +253,7 @@ LottieLoadings({
 
 该案例中有以下几点需要注意：
 
-1. 对于全屏幕高度的页面布局处理，参看 `index.wxml` 中的 `:host{}` 样式参数；其次为了滚动手势的正确性，在 `index.json` 中设置 `disableScroll: true` ；最终才可以在 `index.wxml` 中直接设置 `<refreshable-view>` 的高度为 `100%` 。
+1. 为了滚动手势的正确性，在 `index.json` 中设置 `disableScroll: true` 。
 2. 模拟器上测试时需在微信开发者工具中关闭域名校验，实机测试请开启调试模式。
 3. 模拟数据的 API 来自于 [Random Data API](https://random-data-api.com/) ，头像 API 来自于 [DiceBear Avatars](https://avatars.dicebear.com/) ，在这里表示感谢，其次国内访问他们 API 貌似会有卡顿，可尝试科学上网。
 

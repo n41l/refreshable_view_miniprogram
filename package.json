@@ -1,6 +1,6 @@
 {
   "name": "refreshable_view_miniprogram",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "",
   "main": "miniprogram_dist/index.js",
   "scripts": {
