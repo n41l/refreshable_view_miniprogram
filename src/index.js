@@ -262,6 +262,7 @@ Component({
               })
             } else {
               this.value = 'idle'
+              this._sentinelLoading = false
               this.updateScrollViewOffsets()
             }
           }
