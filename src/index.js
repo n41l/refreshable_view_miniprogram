@@ -245,11 +245,11 @@ Component({
                   if (status.value === 'refreshing') {
                     if (outerCompletion) outerCompletion()
                     status.value = 'idle'
-                  }
-                  setTimeout(() => {
-                    this._sentinelLoading = false
                     this.updateScrollViewOffsets()
-                  }, 100)
+                    setTimeout(() => {
+                      this._sentinelLoading = false
+                    }, 500)
+                  }
                 },
                 fail: () => {
                   // maybe you can add some error handling
@@ -257,7 +257,7 @@ Component({
                   setTimeout(() => {
                     this.updateScrollViewOffsets()
                     this._sentinelLoading = false
-                  }, 100)
+                  }, 500)
                 }
               })
             } else {
