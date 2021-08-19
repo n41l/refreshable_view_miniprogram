@@ -44,9 +44,10 @@ Component({
     trailingRefresherType: {
       type: RefresherType,
       value: new RefresherType({
-        type: 'lottie-loading',
-        height: 50,
-        data: LottieLoadings.circle()
+        // type: 'lottie-loading',
+        type: 'sentinel-loading',
+        // height: 50,
+        // data: LottieLoadings.circle()
       })
     },
 
@@ -57,7 +58,7 @@ Component({
 
     trailingPullingThreshold: {
       type: Number,
-      value: 50
+      value: 200
     },
 
     minimumRefreshDuration: {
@@ -232,25 +233,36 @@ Component({
               onRefreshingEvent
             }
           ) => {
-            if (scrollViewOffset > 0 && scrollViewOffset < pullingThreshold && canRefresh) {
+            if (scrollViewOffset > 0 &&
+              scrollViewOffset < pullingThreshold &&
+              canRefresh) {
+              if (this._sentinelLoading) { return }
               status.value = 'refreshing'
-
+              this._sentinelLoading = true
               this.triggerEvent(onRefreshingEvent, {
                 instance: this,
                 success: (outerCompletion) => {
                   if (status.value === 'refreshing') {
-                    status.value = 'idle'
-                    this.updateScrollViewOffsets()
                     if (outerCompletion) outerCompletion()
+                    status.value = 'idle'
                   }
+                  setTimeout(() => {
+                    this._sentinelLoading = false
+                    this.updateScrollViewOffsets()
+                  }, 100)
                 },
                 fail: () => {
                   // maybe you can add some error handling
                   status.value = 'idle'
+                  setTimeout(() => {
+                    this.updateScrollViewOffsets()
+                    this._sentinelLoading = false
+                  }, 100)
                 }
               })
             } else {
-              status.value = 'idle'
+              this.value = 'idle'
+              this.updateScrollViewOffsets()
             }
           }
         } else {
